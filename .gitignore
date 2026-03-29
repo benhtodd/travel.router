@@ -1,0 +1,25 @@
+# Claude Code local settings (contains secret references)
+.claude/settings.local.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / certs (never commit these)
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
