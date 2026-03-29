@@ -10,5 +10,3 @@ services:
     volumes:
       - /mnt/data/technitium/config:/etc/dns/config
     restart: unless-stopped
-    sysctls:
-      - net.ipv4.ip_local_port_range=1024 65000
