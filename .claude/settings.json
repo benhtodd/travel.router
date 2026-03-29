@@ -1,0 +1,6 @@
+{
+  "autoMemoryEnabled": true,
+  "permissions": {
+    "defaultMode": "acceptEdits"
+  }
+}
