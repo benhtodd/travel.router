@@ -17,7 +17,8 @@ A Raspberry Pi configured as a portable travel router with secure local storage 
 ## Stack
 
 - **OS**: Raspberry Pi OS (or Ubuntu Server for Pi — TBD)
-- **Networking**: hostapd (WiFi AP), dnsmasq (DHCP/DNS), iptables (routing/NAT)
+- **Networking**: hostapd (WiFi AP), iptables (routing/NAT)
+- **DNS/DHCP**: Technitium DNS Server (Docker) — web UI on port 5380
 - **VPN/mesh**: Tailscale
 - **File sharing**: TBD (options: Samba, Nextcloud, Syncthing, or SFTP)
 - **Container runtime**: Docker + Docker Compose (for services)
@@ -48,6 +49,7 @@ This project uses **OpenRouter free tier** to save Claude Pro credits during dev
 
 > Add architectural decisions, constraints, and notes here as the project evolves.
 
+- [x] DNS/DHCP: Technitium DNS Server in Docker
+- [x] OS: Debian 13 (Trixie) — already installed on pinas01
 - [ ] Decide on file sharing service (Samba vs Nextcloud vs SFTP)
-- [ ] Decide on Pi OS (Raspberry Pi OS Lite vs Ubuntu Server)
-- [ ] Decide on WiFi adapter strategy for travel AP mode
+- [ ] Decide on WiFi adapter strategy for travel AP mode (USB adapter recommended)

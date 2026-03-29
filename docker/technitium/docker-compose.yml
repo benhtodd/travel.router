@@ -1,0 +1,14 @@
+services:
+  technitium:
+    image: technitium/dns-server:latest
+    container_name: technitium
+    hostname: technitium
+    network_mode: host
+    environment:
+      - DNS_SERVER_DOMAIN=pinas01.local
+      - DNS_SERVER_ADMIN_PASSWORD_FILE=/etc/dns/config/admin-password
+    volumes:
+      - /mnt/data/technitium/config:/etc/dns/config
+    restart: unless-stopped
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65000
