@@ -27,3 +27,4 @@ services:
     volumes:
       - /mnt/data/wordpress/site:/var/www/html
       - /mnt/data/files/slides:/var/www/html/wp-content/slides
+      - ./slides.conf:/etc/apache2/conf-enabled/slides.conf:ro

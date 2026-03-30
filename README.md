@@ -46,7 +46,13 @@ All services run in Docker. Data is stored under `/mnt/data` on the 3.6TB data d
 - **Compose:** `docker/wordpress/docker-compose.yml`
 - **Data:** `/mnt/data/wordpress/`
 
-The WordPress site is the public-facing event portal. Visitors browse without logging in. Content includes event schedule, speaker info, and download links to slides. The site design can be adjusted per event using WordPress themes and customizer — previous content is preserved in the database between events.
+The WordPress site is the public-facing event portal. Visitors browse without logging in. The front page displays an event calendar (Super Simple Event Calendar plugin). Each event links to a WordPress post that lists downloadable files directly from the event's slides folder using the `[event_files folder="..."]` shortcode.
+
+**Plugins:**
+- Super Simple Event Calendar — event listing on the front page
+- Event Files Shortcode (mu-plugin) — renders file listings from `/mnt/data/files/slides/<folder>/`
+
+**Apache config:** `docker/wordpress/slides.conf` — enables directory access for the slides volume mount.
 
 ### Samba — Team File Share
 - **Image:** `dperson/samba:latest`
@@ -56,7 +62,12 @@ The WordPress site is the public-facing event portal. Visitors browse without lo
 - **Local path:** `/mnt/data/files/`
 - **Compose:** `docker/samba/docker-compose.yml`
 
-Team members map this as a network drive to upload slides and other files. The `slides` subfolder (`/mnt/data/files/slides/`) is linked directly from the WordPress site.
+Team members map this as a network drive to upload slides and other files. Each event has a subfolder under `slides/` named `event.mm-dd-yy`.
+
+> **Important:** New folders created under `/mnt/data/files/slides/` must be made world-writable before Samba can write to them:
+> ```bash
+> ssh pinas01 "sudo chmod -R 777 /mnt/data/files/slides/<folder>"
+> ```
 
 **Connecting:**
 - Windows: `net use Z: \\100.92.121.12\files /user:vmware VMware1234 /persistent:yes`
@@ -67,13 +78,11 @@ Team members map this as a network drive to upload slides and other files. The `
 - **Web UI:** `http://100.92.121.12:5380`
 - **Compose:** `docker/technitium/docker-compose.yml`
 
-Handles DNS and DHCP for the local network. Provides local name resolution and network management via a web UI.
+Handles DNS and DHCP for the local network.
 
 ### Nginx — Static Portal (Retired)
 - **Compose:** `docker/nginx/docker-compose.yml`
 - **Status:** Stopped — replaced by WordPress
-
-Kept for reference. Previously served a static HTML site from a GitHub-synced directory. WordPress now handles the public portal.
 
 ---
 
@@ -91,41 +100,53 @@ All remote access uses **Tailscale**. The Pi's Tailscale IP (`100.92.121.12`) is
 
 ---
 
+## Setting Up a New Event
+
+1. Create a calendar entry in WordPress (`ssec_event` post type) with start date as post date
+2. Create a WordPress post with `[event_files folder="event.mm-dd-yy"]` as the content
+3. Update the calendar entry content to include the event name, date range, and a link to the post
+4. Create the Samba folder: `ssh pinas01 "mkdir -p /mnt/data/files/slides/event.mm-dd-yy"`
+5. Fix permissions: `ssh pinas01 "sudo chmod -R 777 /mnt/data/files/slides/event.mm-dd-yy"`
+
+---
+
 ## Repository Structure
 
 ```
 travel.router/
-├── CLAUDE.md                       # Claude Code project instructions
-├── README.md                       # This file
+├── CLAUDE.md                           # Claude Code project instructions
+├── README.md                           # This file
 ├── .gitignore
 ├── docker/
 │   ├── wordpress/
-│   │   └── docker-compose.yml      # WordPress + MariaDB
+│   │   ├── docker-compose.yml          # WordPress + MariaDB
+│   │   ├── slides.conf                 # Apache config — enables slides directory access
+│   │   ├── slides-header.html          # FancyIndex header (reference only)
+│   │   └── slides-footer.html          # FancyIndex footer (reference only)
 │   ├── samba/
-│   │   ├── docker-compose.yml      # Samba file share
-│   │   └── smb.conf                # Samba share configuration
+│   │   ├── docker-compose.yml          # Samba file share
+│   │   └── smb.conf                    # Samba share configuration
 │   ├── technitium/
-│   │   └── docker-compose.yml      # Technitium DNS/DHCP
+│   │   └── docker-compose.yml          # Technitium DNS/DHCP
 │   └── nginx/
-│       ├── docker-compose.yml      # Static portal (retired)
+│       ├── docker-compose.yml          # Static portal (retired)
 │       └── nginx.conf
-├── config/                         # System config files (hostapd, etc.) — pending
+├── config/                             # System config files (hostapd, etc.) — pending
 ├── scripts/
-│   ├── setup.sh                    # Initial Pi provisioning
-│   └── setup-technitium.sh         # Technitium post-deploy setup
+│   ├── setup.sh                        # Initial Pi provisioning
+│   └── setup-technitium.sh             # Technitium post-deploy setup
 └── docs/
-    └── assets.md                   # Hardware and infrastructure inventory
+    └── assets.md                       # Hardware and infrastructure inventory
 ```
 
 ---
 
 ## Deploying to the Pi
 
-Each service has its own `docker-compose.yml`. After making changes locally, copy the file to the Pi and restart the service:
+Each service has its own `docker-compose.yml`. After making changes locally, copy the files to the Pi and restart:
 
 ```bash
-# Example: update WordPress
-scp docker/wordpress/docker-compose.yml pinas01:/home/todd/docker/wordpress/
+scp docker/wordpress/docker-compose.yml docker/wordpress/slides.conf pinas01:/home/todd/docker/wordpress/
 ssh pinas01 "cd /home/todd/docker/wordpress && docker compose up -d"
 ```
 
@@ -137,12 +158,15 @@ All Docker Compose files live on the Pi at `/home/todd/docker/<service>/`.
 
 ```
 /mnt/data/
-├── files/                  # Samba share root
-│   └── slides/             # Slides — linked from WordPress
+├── files/                          # Samba share root
+│   └── slides/                     # Event folders — uploaded via Samba, served via WordPress
+│       ├── orlando.04-20-26/
+│       ├── clearwater.05-04-26/
+│       └── amsterdam.06-22-26/
 ├── wordpress/
-│   ├── site/               # WordPress files (plugins, themes, uploads)
-│   └── db/                 # MariaDB data
-└── delivery-web/           # Legacy static site directory (unused)
+│   ├── site/                       # WordPress files (plugins, themes, uploads, mu-plugins)
+│   └── db/                         # MariaDB data
+└── delivery-web/                   # Legacy static site directory (unused)
 ```
 
 ---
@@ -152,4 +176,3 @@ All Docker Compose files live on the Pi at `/home/todd/docker/<service>/`.
 - [ ] USB WiFi adapter — required for travel AP mode (dual radio)
 - [ ] Configure `hostapd` for local WiFi AP broadcasting
 - [ ] Configure `iptables` for NAT/routing (venue network → local AP)
-- [ ] Build out WordPress site content (schedule, speakers, downloads pages)
