@@ -1,13 +1,11 @@
 services:
   samba:
     image: dperson/samba:latest
-    container_name: samba
-    network_mode: host
-    environment:
-      - TZ=America/New_York
-    volumes:
-      - /mnt/data/files:/mount/files
-    command: >
-      -u "teamuser;${SAMBA_PASSWORD}"
-      -s "files;/mount/files;yes;no;no;teamuser"
+    container_name: samba-server
     restart: unless-stopped
+    volumes:
+      - /mnt/data/files:/home/shared
+    ports:
+      - "139:139"
+      - "445:445"
+    command: -u "vmware;VMware1234" -s "files;/home/shared;yes;no;no;vmware"

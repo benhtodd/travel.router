@@ -1,0 +1,29 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: wordpress-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: vmware
+      MYSQL_PASSWORD: VMware1234
+    volumes:
+      - /mnt/data/wordpress/db:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: vmware
+      WORDPRESS_DB_PASSWORD: VMware1234
+    volumes:
+      - /mnt/data/wordpress/site:/var/www/html
+      - /mnt/data/files/slides:/var/www/html/wp-content/slides

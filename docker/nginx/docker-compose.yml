@@ -5,7 +5,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - /mnt/data/portal:/usr/share/nginx/portal:ro
+      - /mnt/data/delivery-web:/usr/share/nginx/portal:ro
       - /mnt/data/files:/usr/share/nginx/files:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped

@@ -5,8 +5,8 @@
 A Raspberry Pi configured as a portable travel router with secure local storage and remote access for a small team.
 
 **Hardware:**
-- Raspberry Pi (model TBD)
-- 2x NVMe drives for local storage
+- Raspberry Pi 5 8GB (pinas01)
+- 2x NVMe drives — 1.8TB (OS) + 3.6TB (data, mounted at `/mnt/data`)
 
 **Core capabilities:**
 1. **Travel router** — connects to hotel/venue WiFi upstream, shares a secured local network
@@ -16,15 +16,14 @@ A Raspberry Pi configured as a portable travel router with secure local storage 
 
 ## Stack
 
-- **OS**: Raspberry Pi OS (or Ubuntu Server for Pi — TBD)
-- **Networking**: hostapd (WiFi AP), iptables (routing/NAT)
+- **OS**: Debian 13 (Trixie) — 64-bit
+- **Networking**: hostapd (WiFi AP), iptables (routing/NAT) — pending
 - **DNS/DHCP**: Technitium DNS Server (Docker) — web UI on port 5380
-- **VPN/mesh**: Tailscale
-- **File sharing (team)**: Samba — technical team mounts as network drive, uploads to `/mnt/data/files/`
-- **Public portal**: Nginx serving static HTML from a GitHub repo, auto-synced via cron `git pull`
-- **File presentation**: HTML in the portal repo controls all download links — no directory listing exposed
-- **Container runtime**: Docker + Docker Compose (for services)
-- **Secrets**: 1Password CLI on the dev machine; secrets baked into Pi via secure setup script
+- **VPN/mesh**: Tailscale — Pi is at 100.92.121.12
+- **File sharing (team)**: Samba (Docker) — mounts as `\\100.92.121.12\files`, user: vmware/VMware1234
+- **Public portal**: WordPress (Docker) — port 80, Neve theme, admin: vmware/VMware123!
+- **Container runtime**: Docker + Docker Compose
+- **Secrets**: 1Password CLI on the dev machine
 
 ## Project Structure
 
@@ -33,10 +32,14 @@ travel.router/
 ├── CLAUDE.md               # This file
 ├── .gitignore
 ├── docker/                 # Docker Compose services
-├── config/                 # Service config files (hostapd, dnsmasq, tailscale, etc.)
+│   ├── wordpress/          # WordPress + MariaDB (port 80)
+│   ├── samba/              # Team file share (ports 139/445)
+│   ├── technitium/         # DNS/DHCP (port 5380)
+│   └── nginx/              # Static portal (retired — kept for reference)
+├── config/                 # Service config files (hostapd, etc.)
 ├── scripts/                # Setup and maintenance scripts
-│   ├── setup.sh            # Initial Pi provisioning
-│   └── ...
+│   └── setup.sh            # Initial Pi provisioning
+│   └── setup-technitium.sh
 └── docs/                   # Architecture decisions, network diagrams, notes
 ```
 
@@ -49,14 +52,12 @@ This project uses **OpenRouter free tier** to save Claude Pro credits during dev
 
 ## Key Decisions & Working Notes
 
-> Add architectural decisions, constraints, and notes here as the project evolves.
-
-- [x] DNS/DHCP: Technitium DNS Server in Docker
 - [x] OS: Debian 13 (Trixie) — already installed on pinas01
 - [x] DNS/DHCP: Technitium DNS Server in Docker
-- [x] OS: Debian 13 (Trixie) — already installed on pinas01
-- [x] Team file uploads: Samba (Docker, host networking)
-- [x] Public portal: Nginx (Docker) + GitHub repo + cron git pull every 5 min
-- [ ] Create portal GitHub repo and run setup-portal-sync.sh
-- [ ] Add SAMBA_PASSWORD to 1Password at op://Private/travel-router/samba-password
+- [x] Team file uploads: Samba (Docker, port mapping)
+- [x] Public portal: WordPress + MariaDB (Docker, port 80), Neve theme
+- [x] Portal GitHub sync dropped — WordPress manages content directly
+- [x] Slides folder: `/mnt/data/files/slides` — accessible via Samba and linked from WordPress
+- [ ] Build out WordPress site (schedule, speakers, downloads pages)
 - [ ] Decide on WiFi adapter strategy for travel AP mode (USB adapter recommended)
+- [ ] Configure hostapd for travel AP mode
