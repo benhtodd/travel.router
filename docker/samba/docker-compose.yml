@@ -8,4 +8,4 @@ services:
     ports:
       - "139:139"
       - "445:445"
-    command: -u "vmware;VMware1234" -s "files;/home/shared;yes;no;no;vmware"
+    command: -u "vmware;VMware123" -s "files;/home/shared;yes;no;no;vmware"

@@ -6,7 +6,7 @@ services:
     network_mode: host
     environment:
       - DNS_SERVER_DOMAIN=pinas01.local
-      - DNS_SERVER_ADMIN_PASSWORD_FILE=/etc/dns/config/admin-password
+      - DNS_SERVER_ADMIN_PASSWORD=VMware123!
     volumes:
       - /mnt/data/technitium/config:/etc/dns/config
     restart: unless-stopped
