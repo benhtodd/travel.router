@@ -70,6 +70,12 @@ Team members map this as a network drive to upload slides and other files. Each 
 > ```
 
 **Connecting:**
+
+On the `advancedTE` team WiFi:
+- Windows: `net use Z: \\192.168.10.1\files /user:vmware VMware123 /persistent:yes`
+- Mac: `smb://192.168.10.1/files`
+
+Via Tailscale (remote):
 - Windows: `net use Z: \\100.92.121.12\files /user:vmware VMware123 /persistent:yes`
 - Mac: `smb://100.92.121.12/files`
 
