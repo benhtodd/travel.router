@@ -43,13 +43,15 @@ Compose files on the Pi: `/home/todd/docker/<service>/docker-compose.yml`
 
 ## Service Access
 
-| Service | AP network | Tailscale (remote) |
-|---------|-----------|-------------------|
-| WordPress | http://ate-events.local or http://192.168.10.1 | http://100.92.121.12 |
-| WordPress admin | http://ate-events.local/wp-admin | http://100.92.121.12/wp-admin |
-| Technitium | http://192.168.10.1:5380 | http://100.92.121.12:5380 |
-| Samba | \\192.168.10.1\files | \\100.92.121.12\files |
-| SSH | — | `ssh pinas01` (via ~/.ssh/config + todd-ssh-key) |
+| Service | AP network | Tailscale (remote) | COHO admin |
+|---------|-----------|-------------------|------------|
+| WordPress | http://ate-events.local or http://192.168.10.1 | http://100.92.121.12 | https://pine.coho.lan |
+| WordPress admin | http://ate-events.local/wp-admin | http://100.92.121.12/wp-admin | https://pine.coho.lan/wp-admin |
+| Technitium | http://192.168.10.1:5380 | http://100.92.121.12:5380 | — |
+| Samba | \\192.168.10.1\files | \\100.92.121.12\files | — |
+| SSH | — | `ssh pinas01` (via ~/.ssh/config + todd-ssh-key) | — |
+
+`pine.coho.lan` → proxy01 (172.16.16.66, Caddy) → 100.92.121.12:80. DNS: COHO Technitium (dns01), A record 172.16.16.66.
 
 ---
 
@@ -77,11 +79,26 @@ Compose files on the Pi: `/home/todd/docker/<service>/docker-compose.yml`
 
 ## WordPress — Key Info
 
-- **Site URL:** `http://192.168.10.1` (matches the AP IP — do NOT change to ate-events.local or 100.92.121.12)
 - **Theme:** Neve
 - **Plugins:** Super Simple Event Calendar, Event Files Shortcode (mu-plugin)
 - **Slides served from:** `/mnt/data/files/slides/<event-folder>/` via `[event_files folder="..."]` shortcode
 - **Data path:** `/mnt/data/wordpress/` (site files + MariaDB)
+
+### Multi-host URL support (2026-04-03)
+`wp-config.php` sets `WP_HOME`/`WP_SITEURL` dynamically from `HTTP_HOST`, allowing WordPress to respond
+correctly from any allowed host without redirecting:
+
+| Access path | URL | Notes |
+|-------------|-----|-------|
+| AP attendees (direct) | `http://192.168.10.1` | No proxy |
+| AP attendees (DNS) | `http://ate-events.local` | Pi's Technitium resolves → 192.168.10.1 |
+| COHO admin | `https://pine.coho.lan` | Via proxy01 Caddy → 100.92.121.12:80 |
+| Tailscale direct | `http://100.92.121.12` | No proxy |
+
+- The DB `siteurl` option is `http://192.168.10.1` — leave it alone (fallback only, wp-config.php overrides it)
+- `wp-config.php` is tracked in repo at `docker/wordpress/wp-config.php`
+- Deploy after changes: `scp docker/wordpress/wp-config.php pinas01:/mnt/data/wordpress/site/wp-config.php`
+- HTTPS detection: Caddy sends `X-Forwarded-Proto: https`, wp-config.php uses it to set `WP_HOME` to `https://`
 
 ---
 
