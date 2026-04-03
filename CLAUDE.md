@@ -11,7 +11,7 @@ A Raspberry Pi 5 configured as a portable travel router with secure local storag
 
 **Core capabilities:**
 1. **Travel router** — connects to hotel/venue WiFi upstream (eth0 or wlan0), shares a secured local network via wlan1 (`advancedTE` SSID)
-2. **Event WordPress site** — attendees on the AP browse `http://pine.local` (Technitium resolves it)
+2. **Event WordPress site** — attendees on the AP browse `http://ate-events.local` (Technitium resolves it)
 3. **Team file share** — Samba on `/mnt/data/files/`, team uploads slides via `\\<pi-ip>\files`
 4. **Remote access** — Tailscale always-on at `100.92.121.12` regardless of venue
 
@@ -45,8 +45,8 @@ Compose files on the Pi: `/home/todd/docker/<service>/docker-compose.yml`
 
 | Service | AP network | Tailscale (remote) |
 |---------|-----------|-------------------|
-| WordPress | http://pine.local or http://192.168.10.1 | http://100.92.121.12 |
-| WordPress admin | http://pine.local/wp-admin | http://100.92.121.12/wp-admin |
+| WordPress | http://ate-events.local or http://192.168.10.1 | http://100.92.121.12 |
+| WordPress admin | http://ate-events.local/wp-admin | http://100.92.121.12/wp-admin |
 | Technitium | http://192.168.10.1:5380 | http://100.92.121.12:5380 |
 | Samba | \\192.168.10.1\files | \\100.92.121.12\files |
 | SSH | — | `ssh pinas01` (via ~/.ssh/config + todd-ssh-key) |
@@ -70,14 +70,14 @@ Compose files on the Pi: `/home/todd/docker/<service>/docker-compose.yml`
   - ⚠️ Previous mistake was mapping to `/etc/dns/config` (a subdirectory) — config was NOT persisting
   - Fixed 2026-04-03: correct mount is `:/etc/dns`, all config now survives container recreates
 - **DHCP scope:** `advancedTE` — serves `192.168.10.10–100` to AP clients
-- **DNS zone:** `pine.local` → `192.168.10.1` — attendees on `advancedTE` reach WordPress at `http://pine.local`
+- **DNS zone:** `ate-events.local` → `192.168.10.1` — attendees on `advancedTE` reach WordPress at `http://ate-events.local`
 - **Password reset:** `DNS_SERVER_ADMIN_PASSWORD` env var only applies on first run (fresh config). If password is lost, copy config out, recreate container, copy back.
 
 ---
 
 ## WordPress — Key Info
 
-- **Site URL:** `http://192.168.10.1` (matches the AP IP — do NOT change to pine.local or 100.92.121.12)
+- **Site URL:** `http://192.168.10.1` (matches the AP IP — do NOT change to ate-events.local or 100.92.121.12)
 - **Theme:** Neve
 - **Plugins:** Super Simple Event Calendar, Event Files Shortcode (mu-plugin)
 - **Slides served from:** `/mnt/data/files/slides/<event-folder>/` via `[event_files folder="..."]` shortcode
@@ -123,7 +123,7 @@ ssh pinas01-ts   # 100.92.121.12 (Tailscale — use when away from local LAN)
    ```
 2. Tailscale comes up automatically once internet is available
 3. Team connects to `advancedTE` WiFi → gets `192.168.10.x` IP + Pi as DNS
-4. Attendees browse `http://pine.local` → WordPress
+4. Attendees browse `http://ate-events.local` → WordPress
 
 ---
 
