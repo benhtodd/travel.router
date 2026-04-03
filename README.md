@@ -87,6 +87,8 @@ Via Tailscale (remote):
 
 Handles DNS and DHCP for the local network. DHCP scope `advancedTE` serves `192.168.10.10–100` to clients on the team AP.
 
+Zone `pine.local` → `192.168.10.1` — resolves the WordPress site for all AP clients.
+
 ### WiFi AP — Team Network
 - **Interface:** `wlan1` (USB Realtek RTL8811CU)
 - **SSID:** `advancedTE`
